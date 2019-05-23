@@ -1,47 +1,49 @@
-/*import express = require('express');
-import users = require('./routes/user');
+
+import express = require("express");
+//import * as routes from './routes/user'
+import session =require('express-session')
+import router  from './routes/user'
 import path = require('path');
-
-// Create a new express application instance
-const app: express.Application = express();
-
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'ejs')
-app.use(express.urlencoded({ extended: false }));
-app.get('/', function (req, res) {
-    res.send('Hello World!');
-});
-
-app.use('/',users)
-
-
-app.listen(5000, function () {
-    console.log('Example app listening on port 5000!');
-});*/
-
-
-import express = require('express');
-import userRoute = require('./routes/user')
-
+const passport = require('passport')
+let bodyParser = require('body-parser');
+//import FileStore = require('session-file-store')(session);
+// Creates and configures an ExpressJS web server.
 class App {
-    constructor(){}
+    // ref to Express instance
+    public app: express.Application;
+    //Run configuration methods on the Express instance.
+    constructor() {
+        this.app = express();
+        this.config();
+        this.middleware();
+        this.routes();
 
-    app: express.Application;
-
-    listen(){
-        this.app.listen('5000',()=>{
-            console.log('app: ',this.app)
-        })
     }
 
-    public getServer() {
-        return this.app;
+    private config():void{
+
+        this.app.use(session({
+            secret: 'keyboard cat',
+            resave: false,
+            saveUninitialized: false
+        }))
+        this.app.use(passport.initialize());
+        this.app.use(passport.session());
+
+        this.app.use(express.static(path.join(__dirname, "public")));
+        this.app.set("views", path.join(__dirname, "views"));
+        this.app.set("view engine", "ejs");
+        this.app.use(bodyParser.json());
+        this.app.use(bodyParser.urlencoded({ extended: false }));
+    }
+    // Configure Express middleware.
+    private middleware(): void {
     }
 
-    app.use('/' , userRoute);
+    // Configure API endpoints.
+    private routes(): void {
+        this.app.use('/',router)
 
-
+    }
 }
-const startApp = new App();
-startApp.listen();
-console.log(startApp)
+export default new App().app;
